@@ -1,0 +1,46 @@
+version: 2.1
+
+parameters:
+  checking:
+    type: boolean
+    default: true
+  doing:
+    type: boolean
+    default: false
+
+executors:
+  node:
+    docker:
+      - image: node:latest
+
+jobs:
+  check_stuff:
+    executor: node
+    steps:
+      - run: exit 0 # check your stuff here
+      - run: |
+          curl -f --show-error --location --request POST 'https://circleci.com/api/v2/project/gh/annapamma/sandbox/pipeline' \
+          --header 'Content-Type: application/json' \
+          --header "Circle-Token: ${CIRCLE_TOKEN}" \
+          --header 'Accept: application/json' \
+          --data-raw '{
+          	"parameters": {
+          		"checking": false,
+          		"doing": true
+          	}
+          }
+          '
+  do_stuff:
+    executor: node
+    steps:
+      - run: echo "did stuff"
+
+workflows:
+  check_stuff:
+    when: << pipeline.parameters.checking >>
+    jobs:
+      - check_stuff
+  do_stuff:
+    when: << pipeline.parameters.doing >>
+    jobs:
+      - do_stuff
