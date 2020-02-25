@@ -1,10 +1,10 @@
 version: 2.1
 
 parameters:
-  checking:
+  build_and_publish:
     type: boolean
     default: true
-  doing:
+  delete_branch:
     type: boolean
     default: false
 
@@ -19,25 +19,33 @@ jobs:
     steps:
       - run: checkout
       - run: echo "build step"
+  # add artifact storage step
+  test:
+    executor: node
+    steps:
+      - run: checkout
+      - run: echo "testing"
   publish-github-release:
     executor: node
     steps:
       - run:
-          name: "Publish Release on GitHub"
+          name: "Publish Release on Github"
+          command: ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
+      # https://circleci.com/blog/publishing-to-github-releases-via-circleci/
+      - run:
+          name: "Trigger branch cleanup"
           command: |
-            curl -f --show-error --location --request POST 'https://circleci.com/api/v2/project/gh/annapamma/sandbox/pipeline' \
+            curl -f --show-error --location --request POST 'https://circleci.com/api/v2/project/gh/annapamma/tpi-sandbox/pipeline' \
             --header 'Content-Type: application/json' \
             --header "Circle-Token: ${CIRCLE_TOKEN}" \
             --header 'Accept: application/json' \
             -d '{
                 "parameters": {
-                    "checking": false,
-                    "doing": true
+                    "build_and_publish": false,
+                    "delete_branch": true
                 }
             }
             '
-#            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
-      # https://circleci.com/blog/publishing-to-github-releases-via-circleci/
   do_stuff:
     executor: node
     steps:
@@ -45,11 +53,15 @@ jobs:
 
 workflows:
   publish-github-release:
-    when: << pipeline.parameters.checking >>
+    when: << pipeline.parameters.build_and_publish >>
     jobs:
+      - build
+      - test:
+          requires:
+            - build
       - publish-github-release
-  do_stuff:
-    when: << pipeline.parameters.doing >>
+  delete_branch:
+    when: << pipeline.parameters.delete_branch >>
     jobs:
       - do_stuff
 
