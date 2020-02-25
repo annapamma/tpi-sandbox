@@ -60,7 +60,7 @@ workflows:
       - test:
           requires:
             - build
-      - publish-github-release
+      - publish-github-release:
           requires:
             - test
   delete_branch:
