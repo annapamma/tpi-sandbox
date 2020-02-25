@@ -59,6 +59,10 @@ workflows:
             - build
       - hold-for-release:
           type: approval
+          requires:
+            - e2e-test
+            - lint
+            - unit-test
       - publish-github-release:
           requires:
             - hold-for-release
