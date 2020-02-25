@@ -23,11 +23,25 @@ jobs:
       - checkout
       - run: echo "build step"
       - run: echo "store artifacts from build step"
-  test:
+  unit-test:
     executor: node
     steps:
       - checkout
       - run: echo "testing"
+  e2e-test:
+    executor: node
+    steps:
+      - checkout
+      - run: echo "testing"
+  lint:
+    executor: node
+    steps:
+      - checkout
+      - run: echo "testing"
+  hold-for-release:
+    executor: node
+    steps:
+      - run: echo "holding"
   publish-github-release:
     executor: node
     steps:
@@ -46,9 +60,17 @@ workflows:
     when: << pipeline.parameters.build_and_publish >>
     jobs:
       - build
-      - test:
+      - unit-test:
           requires:
             - build
+      - e2e-test:
+          requires:
+            - build
+      - lint:
+          requires:
+            - build
+      - hold-for-release:
+          type: approval
       - publish-github-release:
           requires:
             - test
