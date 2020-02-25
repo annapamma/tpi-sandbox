@@ -22,7 +22,7 @@ jobs:
     steps:
       - checkout
       - run: echo "build step"
-  # add artifact storage step
+      - run: echo "store artifacts from build step"
   test:
     executor: node
     steps:
@@ -32,29 +32,14 @@ jobs:
     executor: node
     steps:
       - checkout
-      - run:
-          name: "Publish Release on Github"
-          command: echo "ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/"
-      # https://circleci.com/blog/publishing-to-github-releases-via-circleci/
-      - run:
-          name: "Trigger branch cleanup"
-          command: |
-            curl -f --show-error --location --request POST 'https://circleci.com/api/v2/project/gh/annapamma/tpi-sandbox/pipeline' \
-            --header 'Content-Type: application/json' \
-            --header "Circle-Token: ${CIRCLE_TOKEN}" \
-            --header 'Accept: application/json' \
-            -d "{
-                "parameters": {
-                    "build_and_publish": false,
-                    "delete_branch": true,
-                    "branch_to_delete": ${CIRCLE_BRANCH}
-                }
-            }
-            "
-  do_stuff:
+      - run: echo "ghr command"
+      - run: echo "trigger branch cleanup"
+  delete-branch:
     executor: node
     steps:
-      - run: echo "did stuff"
+      - checkout
+      - run: echo "delete branch here"
+      - run: echo "auto increment version here, by maintaining it in project variables"
 
 workflows:
   publish-github-release:
@@ -67,14 +52,15 @@ workflows:
       - publish-github-release:
           requires:
             - test
-  delete_branch:
-    when: << pipeline.parameters.delete_branch >>
-    jobs:
-      - do_stuff
-
+      - delete-branch:
+          requires:
+            - publish-github-release
 
 # This pipeline needs to:
 # - Create a tag
-## is this a GH tag or an internal tag?
 # - Delete a branch
 # - Auto increment environment variable
+
+#
+#HELPFUL DOCS:
+# github release with CCI: https://circleci.com/blog/publishing-to-github-releases-via-circleci/
