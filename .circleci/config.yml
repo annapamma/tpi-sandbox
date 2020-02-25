@@ -7,6 +7,9 @@ parameters:
   delete_branch:
     type: boolean
     default: false
+  branch_to_delete:
+    type: string
+    default: ''
 
 executors:
   node:
@@ -31,7 +34,7 @@ jobs:
       - checkout
       - run:
           name: "Publish Release on Github"
-          command: ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
+          command: echo "ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/"
       # https://circleci.com/blog/publishing-to-github-releases-via-circleci/
       - run:
           name: "Trigger branch cleanup"
@@ -40,13 +43,14 @@ jobs:
             --header 'Content-Type: application/json' \
             --header "Circle-Token: ${CIRCLE_TOKEN}" \
             --header 'Accept: application/json' \
-            -d '{
+            -d "{
                 "parameters": {
                     "build_and_publish": false,
-                    "delete_branch": true
+                    "delete_branch": true,
+                    "branch_to_delete": ${CIRCLE_BRANCH}
                 }
             }
-            '
+            "
   do_stuff:
     executor: node
     steps:
