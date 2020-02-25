@@ -10,7 +10,7 @@ jobs:
     executor: node
     steps:
       - checkout
-      - run: echo "build step"
+      - run: echo "${GOAT}"
       - run: echo "store artifacts from build step"
   unit-test:
     executor: node
