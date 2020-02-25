@@ -1,16 +1,5 @@
 version: 2.1
 
-parameters:
-  build_and_publish:
-    type: boolean
-    default: true
-  delete_branch:
-    type: boolean
-    default: false
-  branch_to_delete:
-    type: string
-    default: ''
-
 executors:
   node:
     docker:
@@ -57,7 +46,6 @@ jobs:
 
 workflows:
   publish-github-release:
-    when: << pipeline.parameters.build_and_publish >>
     jobs:
       - build
       - unit-test:
