@@ -21,6 +21,7 @@ jobs:
       - run: echo "build step"
   publish-github-release:
     executor: node
+    steps:
       - run:
           name: "Publish Release on GitHub"
           command: |
@@ -43,10 +44,10 @@ jobs:
       - run: echo "did stuff"
 
 workflows:
-  check_stuff:
+  publish-github-release:
     when: << pipeline.parameters.checking >>
     jobs:
-      - check_stuff
+      - publish-github-release
   do_stuff:
     when: << pipeline.parameters.doing >>
     jobs:
