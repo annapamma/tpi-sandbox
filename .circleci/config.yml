@@ -17,17 +17,18 @@ jobs:
   build:
     executor: node
     steps:
-      - run: checkout
+      - checkout
       - run: echo "build step"
   # add artifact storage step
   test:
     executor: node
     steps:
-      - run: checkout
+      - checkout
       - run: echo "testing"
   publish-github-release:
     executor: node
     steps:
+      - checkout
       - run:
           name: "Publish Release on Github"
           command: ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
@@ -60,6 +61,8 @@ workflows:
           requires:
             - build
       - publish-github-release
+          requires:
+            - test
   delete_branch:
     when: << pipeline.parameters.delete_branch >>
     jobs:
