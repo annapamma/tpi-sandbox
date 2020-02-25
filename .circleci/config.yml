@@ -73,7 +73,7 @@ workflows:
           type: approval
       - publish-github-release:
           requires:
-            - test
+            - hold-for-release
       - delete-branch:
           requires:
             - publish-github-release
