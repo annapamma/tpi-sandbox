@@ -14,22 +14,29 @@ executors:
       - image: node:latest
 
 jobs:
-  check_stuff:
+  build:
     executor: node
     steps:
-      - run: exit 0 # check your stuff here
-      - run: |
-          curl -f --show-error --location --request POST 'https://circleci.com/api/v2/project/gh/annapamma/sandbox/pipeline' \
-          --header 'Content-Type: application/json' \
-          --header "Circle-Token: ${CIRCLE_TOKEN}" \
-          --header 'Accept: application/json' \
-          --data-raw '{
-          	"parameters": {
-          		"checking": false,
-          		"doing": true
-          	}
-          }
-          '
+      - run: checkout
+      - run: echo "build step"
+  publish-github-release:
+    executor: node
+      - run:
+          name: "Publish Release on GitHub"
+          command: |
+            curl -f --show-error --location --request POST 'https://circleci.com/api/v2/project/gh/annapamma/sandbox/pipeline' \
+            --header 'Content-Type: application/json' \
+            --header "Circle-Token: ${CIRCLE_TOKEN}" \
+            --header 'Accept: application/json' \
+            -d '{
+                "parameters": {
+                    "checking": false,
+                    "doing": true
+                }
+            }
+            '
+#            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
+      # https://circleci.com/blog/publishing-to-github-releases-via-circleci/
   do_stuff:
     executor: node
     steps:
@@ -44,3 +51,10 @@ workflows:
     when: << pipeline.parameters.doing >>
     jobs:
       - do_stuff
+
+
+# This pipeline needs to:
+# - Create a tag
+## is this a GH tag or an internal tag?
+# - Delete a branch
+# - Auto increment environment variable
